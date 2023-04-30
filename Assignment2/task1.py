@@ -19,17 +19,17 @@ def solve_least_squares(X,Y,delta=10,eps=0.01):
     return retx
 
 X,Y = datasets.load_diabetes(return_X_y=True)
-X = np.array(X)
-Y = np.array([Y]).T
-listx = solve_least_squares(X,Y)
-print(err(X,Y,listx[-1]))
-errors = [err(X,Y,x) for x in listx]
-plt.plot(errors)
+# X = np.array(X)
+# Y = np.array(Y).reshape(-1,1)
+# listx = solve_least_squares(X,Y)
+# print(err(X,Y,listx[-1]))
+# errors = [err(X,Y,x) for x in listx]
+# plt.plot(errors)
 
-# Add labels and title
-plt.xlabel('Step Index')
-plt.ylabel('Error')
-plt.title('Error of each step')
+# # Add labels and title
+# plt.xlabel('Step Index')
+# plt.ylabel('Error')
+# plt.title('Error of each step')
 
-# Show plot
-plt.show()
+# # Show plot
+# plt.show()

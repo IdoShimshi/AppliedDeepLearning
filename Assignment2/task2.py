@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 def err(X,Y,x):
     return (np.linalg.norm((X @ x) - Y)**2) / X.shape[0]
 
-def solve_least_squares(X,Y,delta=0.1,eps=0.5):
+def solve_least_squares(X,Y,delta=10,eps=0.01):
     retx = []
     XTY = X.T @ Y
     XTX = X.T @ X
@@ -20,7 +20,7 @@ def solve_least_squares(X,Y,delta=0.1,eps=0.5):
 
 X,Y = datasets.load_diabetes(return_X_y=True)
 X = np.array(X)
-Y = np.array([Y]).T
+Y = np.array(Y).reshape(-1,1)
 X_train, X_test, Y_train, Y_test = train_test_split(X, Y, test_size=0.2)
 
 
