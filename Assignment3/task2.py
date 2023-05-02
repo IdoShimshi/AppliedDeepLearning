@@ -100,13 +100,25 @@ def train_model(seed=-1):
     return model, train_errors, test_errors
     
 def run():
-	model, test_errors, train_errors = train_model()
+    final_test_errors = []
+    for i in range(1,6):
+        _, test_errors, _ = train_model(i)
+        final_test_errors.append(test_errors[-1])
+        plt.plot(test_errors, label=f"seed {i}")
 
-	print(f'Test error final network on the {len(test_dataset)} test images: {test_errors[-1]}')
-	print(f'Accuracy of: {100 * (1-test_errors[-1])} %')
+    plt.title("Test Errors during Training")
+    plt.xlabel("Epoch")
+    plt.ylabel("Error")
+    plt.legend()
+    plt.show()
 
-	plot_train_test_error(train_errors,test_errors)
-	show_misclassified(test_loader, model)
+    final_test_errors_tensor = torch.tensor(final_test_errors)
+
+    mean_final_test_error = final_test_errors_tensor.mean().item()
+    stddev_final_test_error = final_test_errors_tensor.std().item()
+
+    print(f'Mean final Error is {mean_final_test_error}')
+    print(f'Standard deviation of final Errors is {stddev_final_test_error}')
 
 
 # Setup device
