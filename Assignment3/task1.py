@@ -4,6 +4,20 @@ import torchvision
 import torchvision.transforms as transforms
 import matplotlib.pyplot as plt
 
+# Fully connected neural network
+class NeuralNet(nn.Module):
+	def __init__(self, input_size, hidden_size, num_classes):
+		super(NeuralNet, self).__init__()
+		self.fc1 = nn.Linear(input_size, hidden_size) 
+		self.relu = nn.ReLU()
+		self.fc2 = nn.Linear(hidden_size, num_classes)  
+
+	def forward(self, x):
+		out = self.fc1(x)
+		out = self.relu(out)
+		out = self.fc2(out)
+		return out
+
 def plot_train_test_error(train_errors, test_errors):
 	plt.plot([i+1 for i in range(num_epochs)], train_errors, label='Train Error')
 	plt.plot([i+1 for i in range(num_epochs)], test_errors, label='Test Error')
@@ -52,6 +66,47 @@ def show_misclassified(data_loader,model):
 	
 	plt.show()
 
+def train_model(seed=-1):
+    if seed != -1:
+        torch.manual_seed(seed)
+
+    model = NeuralNet(input_size, hidden_size, num_classes).to(device)
+
+    criterion = nn.CrossEntropyLoss()
+    optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
+
+    # train the model
+    train_errors = []
+    test_errors = []
+    total_step = len(train_loader)
+    for epoch in range(num_epochs):
+        for i, (images, labels) in enumerate(train_loader):
+            images = images.reshape(-1, input_size).to(device)
+            labels = labels.to(device)
+
+            outputs = model(images)
+            loss = criterion(outputs, labels)
+
+            optimizer.zero_grad()
+            loss.backward()
+            optimizer.step()
+
+            if (i+1) % 100 == 0:
+                print('Epoch [{}/{}], Step [{}/{}], Loss: {:.4f}'
+                    .format(epoch+1, num_epochs, i+1, total_step, loss.item()))
+        train_errors.append(calc_error(train_loader,model))
+        test_errors.append(calc_error(test_loader, model))
+
+    return model, train_errors, test_errors
+    
+def run():
+	model, test_errors, train_errors = train_model()
+
+	print(f'Accuracy of the final network on the {len(test_dataset)} test images: {100 * (1 - test_errors[-1])} %')
+
+	plot_train_test_error(train_errors,test_errors)
+	show_misclassified(test_loader, model)
+
 
 # Setup device
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
@@ -66,69 +121,24 @@ learning_rate = 0.001
 
 # MNIST dataset
 train_dataset = torchvision.datasets.MNIST(root='./data/',
-										   train=True,
-										   transform=transforms.ToTensor(),
-										   download=True)
+                                        train=True,
+                                        transform=transforms.ToTensor(),
+                                        download=True)
 
 test_dataset = torchvision.datasets.MNIST(root='./data/',
-										  train=False,
-										  transform=transforms.ToTensor())
+                                        train=False,
+                                        transform=transforms.ToTensor())
 
 # Data loader
 train_loader = torch.utils.data.DataLoader(dataset=train_dataset,
-										   batch_size=batch_size,
-										   shuffle=True)
+                                        batch_size=batch_size,
+                                        shuffle=True)
 
 test_loader = torch.utils.data.DataLoader(dataset=test_dataset,
-										  batch_size=batch_size,
-										  shuffle=False)
-
-
-# Fully connected neural network
-class NeuralNet(nn.Module):
-	def __init__(self, input_size, hidden_size, num_classes):
-		super(NeuralNet, self).__init__()
-		self.fc1 = nn.Linear(input_size, hidden_size) 
-		self.relu = nn.ReLU()
-		self.fc2 = nn.Linear(hidden_size, num_classes)  
-
-	def forward(self, x):
-		out = self.fc1(x)
-		out = self.relu(out)
-		out = self.fc2(out)
-		return out
-
-model = NeuralNet(input_size, hidden_size, num_classes).to(device)
-
-criterion = nn.CrossEntropyLoss()
-optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
-
-# train the model
-train_errors = []
-test_errors = []
-total_step = len(train_loader)
-for epoch in range(num_epochs):
-	for i, (images, labels) in enumerate(train_loader):
-		images = images.reshape(-1, input_size).to(device)
-		labels = labels.to(device)
-
-		outputs = model(images)
-		loss = criterion(outputs, labels)
-
-		optimizer.zero_grad()
-		loss.backward()
-		optimizer.step()
-
-		if (i+1) % 100 == 0:
-			print('Epoch [{}/{}], Step [{}/{}], Loss: {:.4f}'
-				.format(epoch+1, num_epochs, i+1, total_step, loss.item()))
-	train_errors.append(calc_error(train_loader,model))
-	test_errors.append(calc_error(test_loader, model))
-
-print(f'Accuracy of the final network on the {len(test_dataset)} test images: {100 * (1 - test_errors[-1])} %')
-
-plot_train_test_error(train_errors,test_errors)
-show_misclassified(test_loader, model)
-
+                                        batch_size=batch_size,
+                                        shuffle=False)
+if __name__ == "__main__":
+	run()
+	
 # Save the model checkpoint
 # torch.save(model.state_dict(), 'model.ckpt')
