@@ -134,4 +134,5 @@ def train_model(train_loader, test_loader, validation_loader, hidden_size, learn
 
 if __name__ == "__main__":
     task3()
+    task4()
 
