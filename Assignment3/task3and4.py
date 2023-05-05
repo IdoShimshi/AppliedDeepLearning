@@ -4,9 +4,7 @@ import torch
 import torch.nn as nn
 import torchvision
 import torchvision.transforms as transforms
-import numpy as np
-from sklearn.model_selection import train_test_split
-from torch.utils.data import Subset, DataLoader
+from torch.utils.data import DataLoader, random_split
 
 
 TRAIN_DATASET = torchvision.datasets.MNIST(root='./data/', train=True, transform=transforms.ToTensor(), download=True)
@@ -48,7 +46,7 @@ def task3():
 def task4():
     # Hyper-parameters
     hidden_sizes = [100, 500]
-    batch_sizes = [10, 100, 1000]
+    batch_sizes = [100, 1000]
     learning_rates = [0.01, 0.001, 0.0001]
 
     grid_search = []
@@ -62,15 +60,11 @@ def task4():
 
 
 def get_min_validation_error_values(batch_size, hidden_size, learning_rate):
-    np.random.seed(1)
-    train_split, validation_split = get_train_validation_split()
-    train_loader = DataLoader(dataset=train_split, batch_size=batch_size, shuffle=True)
-    validation_loader = DataLoader(dataset=validation_split, batch_size=batch_size, shuffle=True)
-    test_loader = DataLoader(dataset=TEST_DATASET, batch_size=batch_size, shuffle=True)
     validation_errors = []
     test_errors = []
     for i in range(1, 6):
         torch.manual_seed(i)
+        train_loader, validation_loader, test_loader = get_loaders(batch_size, i)
         print(f'\tStart model {i}')
         _, model_validation_errors, model_test_errors = train_model(train_loader, test_loader, validation_loader,
                                                                     hidden_size, learning_rate)
@@ -85,15 +79,12 @@ def get_min_validation_error_values(batch_size, hidden_size, learning_rate):
     return min_validation_error, min_validation_error_model, min_validation_error_epoch, correspond_test_error
 
 
-def get_train_validation_split():
-    # generate indices: instead of the actual data we pass in integers instead
-    train_indices, validation_indices, _, _ = train_test_split(
-        range(len(TRAIN_DATASET)), TRAIN_DATASET.targets, stratify=TRAIN_DATASET.targets, test_size=0.1667,
-    )
-    # generate subset based on indices
-    train_split = Subset(TRAIN_DATASET, train_indices)
-    validation_split = Subset(TRAIN_DATASET, validation_indices)
-    return train_split, validation_split
+def get_loaders(batch_size, seed):
+    train_subset, val_subset = random_split(TRAIN_DATASET, [50000, 10000], generator=torch.Generator().manual_seed(seed))
+    train_loader = DataLoader(dataset=train_subset, shuffle=True, batch_size=batch_size)
+    validation_loader = DataLoader(dataset=val_subset, shuffle=False, batch_size=batch_size)
+    test_loader = DataLoader(dataset=TEST_DATASET, shuffle=True, batch_size=batch_size)
+    return train_loader, validation_loader, test_loader
 
 
 def calc_error(data_loader, model):
