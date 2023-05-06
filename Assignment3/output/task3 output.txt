@@ -1,39 +1,39 @@
 C:\Users\bgazit\AppData\Local\Programs\Python\Python39\python.exe C:\Users\bgazit\PycharmProjects\Study\AppliedDeepLearning\Assignment3\task3and4.py 
 	Start model 1
-		Epoch 1 validation error: 0.0481, test error: 0.0487
-		Epoch 2 validation error: 0.0323, test error: 0.0297
-		Epoch 3 validation error: 0.0293, test error: 0.0276
-		Epoch 4 validation error: 0.0268, test error: 0.0263
-		Epoch 5 validation error: 0.0242, test error: 0.0229
+		Epoch 1 validation error: 0.1687, test error: 0.1643
+		Epoch 2 validation error: 0.1154, test error: 0.1024
+		Epoch 3 validation error: 0.0984, test error: 0.0931
+		Epoch 4 validation error: 0.0894, test error: 0.0837
+		Epoch 5 validation error: 0.0796, test error: 0.0739
 	Start model 2
-		Epoch 1 validation error: 0.0537, test error: 0.0507
-		Epoch 2 validation error: 0.0346, test error: 0.0324
-		Epoch 3 validation error: 0.0323, test error: 0.0318
-		Epoch 4 validation error: 0.0261, test error: 0.0238
-		Epoch 5 validation error: 0.0249, test error: 0.0234
+		Epoch 1 validation error: 0.1959, test error: 0.1736
+		Epoch 2 validation error: 0.1224, test error: 0.1082
+		Epoch 3 validation error: 0.1122, test error: 0.1010
+		Epoch 4 validation error: 0.0893, test error: 0.0772
+		Epoch 5 validation error: 0.0846, test error: 0.0762
 	Start model 3
-		Epoch 1 validation error: 0.0586, test error: 0.0503
-		Epoch 2 validation error: 0.0363, test error: 0.0321
-		Epoch 3 validation error: 0.0311, test error: 0.0259
-		Epoch 4 validation error: 0.0285, test error: 0.024
-		Epoch 5 validation error: 0.0265, test error: 0.0234
+		Epoch 1 validation error: 0.1904, test error: 0.1688
+		Epoch 2 validation error: 0.1261, test error: 0.1084
+		Epoch 3 validation error: 0.1031, test error: 0.0869
+		Epoch 4 validation error: 0.0971, test error: 0.0804
+		Epoch 5 validation error: 0.0887, test error: 0.0744
 	Start model 4
-		Epoch 1 validation error: 0.0511, test error: 0.0446
-		Epoch 2 validation error: 0.0357, test error: 0.0341
-		Epoch 3 validation error: 0.0339, test error: 0.0298
-		Epoch 4 validation error: 0.0289, test error: 0.0265
-		Epoch 5 validation error: 0.0245, test error: 0.0216
+		Epoch 1 validation error: 0.1803, test error: 0.1597
+		Epoch 2 validation error: 0.1244, test error: 0.1110
+		Epoch 3 validation error: 0.1122, test error: 0.0982
+		Epoch 4 validation error: 0.0984, test error: 0.0828
+		Epoch 5 validation error: 0.0865, test error: 0.0710
 	Start model 5
-		Epoch 1 validation error: 0.0542, test error: 0.0457
-		Epoch 2 validation error: 0.0375, test error: 0.0323
-		Epoch 3 validation error: 0.0313, test error: 0.0271
-		Epoch 4 validation error: 0.0277, test error: 0.024
-		Epoch 5 validation error: 0.0246, test error: 0.022
+		Epoch 1 validation error: 0.1820, test error: 0.1603
+		Epoch 2 validation error: 0.1247, test error: 0.1081
+		Epoch 3 validation error: 0.1044, test error: 0.0857
+		Epoch 4 validation error: 0.0892, test error: 0.0757
+		Epoch 5 validation error: 0.0809, test error: 0.0703
 
 
 
 Min validation error found in model 1, epoch 5.
-Min validation error: 0.0242.
-Corresponding test error: 0.0229.
+Min validation error: 0.0796.
+Corresponding test error: 0.0739.
 
 Process finished with exit code 0
