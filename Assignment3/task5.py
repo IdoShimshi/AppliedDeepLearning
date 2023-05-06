@@ -5,33 +5,35 @@ import torchvision.transforms as transforms
 import matplotlib.pyplot as plt
 from sklearn.manifold import TSNE
 
+
 # Fully connected neural network
 class NeuralNet(nn.Module):
-	def __init__(self, input_size, hidden_size, num_classes):
-		super(NeuralNet, self).__init__()
-		self.fc1 = nn.Linear(input_size, hidden_size) 
-		self.relu = nn.ReLU()
-		self.fc2 = nn.Linear(hidden_size, num_classes)  
+    def __init__(self, input_size, hidden_size, num_classes):
+        super(NeuralNet, self).__init__()
+        self.fc1 = nn.Linear(input_size, hidden_size)
+        self.relu = nn.ReLU()
+        self.fc2 = nn.Linear(hidden_size, num_classes)
 
-	def forward(self, x):
-		out = self.fc1(x)
-		out = self.relu(out)
-		out = self.fc2(out)
-		return out
+    def forward(self, x):
+        out = self.fc1(x)
+        out = self.relu(out)
+        out = self.fc2(out)
+        return out
 
-def calc_error(data_loader,model):
-	with torch.no_grad():
-		correct = 0
-		total = 0
-		for images, labels in data_loader:
-			images = images.reshape(-1, 28*28).to(device)
-			labels = labels.to(device)
-			outputs = model(images)
-			_, predicted = torch.max(outputs.data, 1)
-			total += labels.size(0)
-			correct += (predicted == labels).sum().item()
-		
-		return 1 - (correct / total)
+
+def calc_error(data_loader, model):
+    with torch.no_grad():
+        correct = 0
+        total = 0
+        for images, labels in data_loader:
+            images = images.reshape(-1, 28 * 28).to(device)
+            labels = labels.to(device)
+            outputs = model(images)
+            _, predicted = torch.max(outputs.data, 1)
+            total += labels.size(0)
+            correct += (predicted == labels).sum().item()
+
+        return 1 - (correct / total)
 
 
 def train_model(seed=-1):
@@ -59,14 +61,14 @@ def train_model(seed=-1):
             loss.backward()
             optimizer.step()
 
-            if (i+1) % 100 == 0:
+            if (i + 1) % 100 == 0:
                 print('Epoch [{}/{}], Step [{}/{}], Loss: {:.4f}'
-                    .format(epoch+1, num_epochs, i+1, total_step, loss.item()))
-        train_errors.append(calc_error(train_loader,model))
+                      .format(epoch + 1, num_epochs, i + 1, total_step, loss.item()))
+        train_errors.append(calc_error(train_loader, model))
         test_errors.append(calc_error(test_loader, model))
 
     return model, train_errors, test_errors
-    
+
 
 def plot_tsne(model, data_loader):
     # Get embeddings for all images in the train set
@@ -103,12 +105,11 @@ def plot_tsne(model, data_loader):
     ax2.legend()
     plt.show()
 
-    
+
 def run():
-	model, _, _ = train_model()
+    model, _, _ = train_model()
 
-	plot_tsne(model, train_loader)
-
+    plot_tsne(model, train_loader)
 
 
 # Setup device
@@ -124,24 +125,24 @@ learning_rate = 0.001
 
 # MNIST dataset
 train_dataset = torchvision.datasets.MNIST(root='./data/',
-                                        train=True,
-                                        transform=transforms.ToTensor(),
-                                        download=True)
+                                           train=True,
+                                           transform=transforms.ToTensor(),
+                                           download=True)
 
 test_dataset = torchvision.datasets.MNIST(root='./data/',
-                                        train=False,
-                                        transform=transforms.ToTensor())
+                                          train=False,
+                                          transform=transforms.ToTensor())
 
 # Data loader
 train_loader = torch.utils.data.DataLoader(dataset=train_dataset,
-                                        batch_size=batch_size,
-                                        shuffle=True)
+                                           batch_size=batch_size,
+                                           shuffle=True)
 
 test_loader = torch.utils.data.DataLoader(dataset=test_dataset,
-                                        batch_size=batch_size,
-                                        shuffle=False)
+                                          batch_size=batch_size,
+                                          shuffle=False)
 if __name__ == "__main__":
-	run()
-	
+    run()
+
 # Save the model checkpoint
 # torch.save(model.state_dict(), 'model.ckpt')
