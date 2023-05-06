@@ -2,17 +2,24 @@ import torch
 import torch.nn as nn
 import torchvision
 import torchvision.transforms as transforms
-import matplotlib.pyplot as plt
+from matplotlib import pyplot as plt
 from sklearn.manifold import TSNE
+from torch.utils.data import DataLoader
+
+TRAIN_DATASET = torchvision.datasets.MNIST(root='./data/', train=True, transform=transforms.ToTensor(), download=True)
+DEVICE = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+INPUT_SIZE = 28 * 28
+NUM_CLASSES = 10
+NUM_EPOCHS = 5
 
 
 # Fully connected neural network
 class NeuralNet(nn.Module):
-    def __init__(self, input_size, hidden_size, num_classes):
+    def __init__(self, _input_size, hidden_size, _num_classes):
         super(NeuralNet, self).__init__()
-        self.fc1 = nn.Linear(input_size, hidden_size)
+        self.fc1 = nn.Linear(_input_size, hidden_size)
         self.relu = nn.ReLU()
-        self.fc2 = nn.Linear(hidden_size, num_classes)
+        self.fc2 = nn.Linear(hidden_size, _num_classes)
 
     def forward(self, x):
         out = self.fc1(x)
@@ -21,38 +28,28 @@ class NeuralNet(nn.Module):
         return out
 
 
-def calc_error(data_loader, model):
-    with torch.no_grad():
-        correct = 0
-        total = 0
-        for images, labels in data_loader:
-            images = images.reshape(-1, 28 * 28).to(device)
-            labels = labels.to(device)
-            outputs = model(images)
-            _, predicted = torch.max(outputs.data, 1)
-            total += labels.size(0)
-            correct += (predicted == labels).sum().item()
+def task5():
+    # Hyper-parameters
+    hidden_size = 500
+    batch_size = 1000
+    learning_rate = 0.01
 
-        return 1 - (correct / total)
+    torch.manual_seed(1)
+    train_loader = DataLoader(dataset=TRAIN_DATASET, shuffle=True, batch_size=batch_size)
+    model = train_model(train_loader, hidden_size, learning_rate)
+    plot_tsne(model, train_loader)
 
 
-def train_model(seed=-1):
-    if seed != -1:
-        torch.manual_seed(seed)
-
-    model = NeuralNet(input_size, hidden_size, num_classes).to(device)
+def train_model(train_loader, hidden_size, learning_rate):
+    model = NeuralNet(INPUT_SIZE, hidden_size, NUM_CLASSES).to(DEVICE)
 
     criterion = nn.CrossEntropyLoss()
     optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
 
-    # train the model
-    train_errors = []
-    test_errors = []
-    total_step = len(train_loader)
-    for epoch in range(num_epochs):
+    for epoch in range(NUM_EPOCHS):
         for i, (images, labels) in enumerate(train_loader):
-            images = images.reshape(-1, input_size).to(device)
-            labels = labels.to(device)
+            images = images.reshape(-1, INPUT_SIZE).to(DEVICE)
+            labels = labels.to(DEVICE)
 
             outputs = model(images)
             loss = criterion(outputs, labels)
@@ -60,14 +57,7 @@ def train_model(seed=-1):
             optimizer.zero_grad()
             loss.backward()
             optimizer.step()
-
-            if (i + 1) % 100 == 0:
-                print('Epoch [{}/{}], Step [{}/{}], Loss: {:.4f}'
-                      .format(epoch + 1, num_epochs, i + 1, total_step, loss.item()))
-        train_errors.append(calc_error(train_loader, model))
-        test_errors.append(calc_error(test_loader, model))
-
-    return model, train_errors, test_errors
+    return model
 
 
 def plot_tsne(model, data_loader):
@@ -77,7 +67,7 @@ def plot_tsne(model, data_loader):
     labels = []
     with torch.no_grad():
         for images, batch_labels in data_loader:
-            images = images.to(device)
+            images = images.to(DEVICE)
             out = model.fc1(images.view(images.size(0), -1))
             out = model.relu(out)
             embeddings_fc1.append(out.cpu())
@@ -89,7 +79,7 @@ def plot_tsne(model, data_loader):
         labels = torch.cat(labels, dim=0)
 
     # Use TSNE to reduce the dimensionality of the embeddings to 2D
-    tsne = TSNE(n_components=2, random_state=42)
+    tsne = TSNE()
     embeddings_fc1_2d = tsne.fit_transform(embeddings_fc1)
     embeddings_input_2d = tsne.fit_transform(embeddings_input)
 
@@ -106,43 +96,6 @@ def plot_tsne(model, data_loader):
     plt.show()
 
 
-def run():
-    model, _, _ = train_model()
-
-    plot_tsne(model, train_loader)
-
-
-# Setup device
-device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-
-# Hyperparameters
-input_size = 784
-hidden_size = 500
-num_classes = 10
-num_epochs = 5
-batch_size = 100
-learning_rate = 0.001
-
-# MNIST dataset
-train_dataset = torchvision.datasets.MNIST(root='./data/',
-                                           train=True,
-                                           transform=transforms.ToTensor(),
-                                           download=True)
-
-test_dataset = torchvision.datasets.MNIST(root='./data/',
-                                          train=False,
-                                          transform=transforms.ToTensor())
-
-# Data loader
-train_loader = torch.utils.data.DataLoader(dataset=train_dataset,
-                                           batch_size=batch_size,
-                                           shuffle=True)
-
-test_loader = torch.utils.data.DataLoader(dataset=test_dataset,
-                                          batch_size=batch_size,
-                                          shuffle=False)
 if __name__ == "__main__":
-    run()
+    task5()
 
-# Save the model checkpoint
-# torch.save(model.state_dict(), 'model.ckpt')
