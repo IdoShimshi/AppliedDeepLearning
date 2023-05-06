@@ -39,8 +39,8 @@ def task3():
     validation_error, model_num, epoch_num, correspond_test_error = get_min_validation_error_values(batch_size, hidden_size, learning_rate)
     print('\n\n')
     print(f'Min validation error found in model {model_num}, epoch {epoch_num}.')
-    print(f'Min validation error: {validation_error}.')
-    print(f'Corresponding test error: {correspond_test_error}.')
+    print(f'Min validation error: {validation_error:.4f}.')
+    print(f'Corresponding test error: {correspond_test_error:.4f}.')
 
 
 def task4():
@@ -55,7 +55,7 @@ def task4():
             for learning_rate in learning_rates:
                 print(f'Starting hidden_size: {hidden_size}, batch_size: {batch_size}, learning_rate: {learning_rate}')
                 _, _, _, test_error = get_min_validation_error_values(batch_size, hidden_size, learning_rate)
-                grid_search.append("" + str(hidden_size) + "," + str(batch_size) + "," + str(learning_rate) + "," + str(test_error))
+                grid_search.append(str(hidden_size) + "," + str(batch_size) + "," + str(learning_rate) + "," + str(round(test_error, 4)))
     print(f'{grid_search}')
 
 
@@ -127,7 +127,7 @@ def train_model(train_loader, test_loader, validation_loader, hidden_size, learn
         validation_errors.append(validation_error)
         test_error = calc_mean_cross_entropy(test_loader, model)
         test_errors.append(test_error)
-        print(f'\t\tEpoch {epoch+1} validation error: {validation_error}, test error: {test_error}')
+        print(f'\t\tEpoch {epoch+1} validation error: {validation_error:.4f}, test error: {test_error:.4f}')
 
     return model, validation_errors, test_errors
 
