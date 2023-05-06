@@ -87,19 +87,19 @@ def get_loaders(batch_size, seed):
     return train_loader, validation_loader, test_loader
 
 
-def calc_error(data_loader, model):
+def calc_mean_cross_entropy(data_loader, model):
+    criterion = nn.CrossEntropyLoss()
+    total_loss = 0.0
+    num_batches = 0
     with torch.no_grad():
-        correct = 0
-        total = 0
         for images, labels in data_loader:
             images = images.reshape(-1, 28 * 28).to(DEVICE)
-            labels = labels.to(DEVICE)
             outputs = model(images)
-            _, predicted = torch.max(outputs.data, 1)
-            total += labels.size(0)
-            correct += (predicted == labels).sum().item()
-
-        return round(1 - (correct / total), 4)
+            loss = criterion(outputs, labels)
+            total_loss += loss.item()
+            num_batches += 1
+    mean_loss = total_loss / num_batches
+    return mean_loss
 
 
 def train_model(train_loader, test_loader, validation_loader, hidden_size, learning_rate):
@@ -123,9 +123,9 @@ def train_model(train_loader, test_loader, validation_loader, hidden_size, learn
             loss.backward()
             optimizer.step()
 
-        validation_error = calc_error(validation_loader, model)
+        validation_error = calc_mean_cross_entropy(validation_loader, model)
         validation_errors.append(validation_error)
-        test_error = calc_error(test_loader, model)
+        test_error = calc_mean_cross_entropy(test_loader, model)
         test_errors.append(test_error)
         print(f'\t\tEpoch {epoch+1} validation error: {validation_error}, test error: {test_error}')
 
