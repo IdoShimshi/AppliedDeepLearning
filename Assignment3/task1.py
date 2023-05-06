@@ -27,7 +27,32 @@ def plot_train_test_error(train_errors, test_errors):
 	plt.title('Train and Test Error Across Epochs')
 	plt.show()
 
-def calc_error(data_loader,model):
+def calc_mean_cross_entropy(data_loader, model):
+    """
+    Calculates the mean loss error over the entire dataset using the specified
+    model and data loader. Assumes the loss function is nn.CrossEntropyLoss.
+    
+    Args:
+        model: A PyTorch model to evaluate.
+        data_loader: A PyTorch DataLoader that provides the dataset to evaluate on.
+        
+    Returns:
+        The mean loss error over the entire dataset.
+    """
+    criterion = nn.CrossEntropyLoss()
+    total_loss = 0.0
+    num_batches = 0
+    with torch.no_grad():
+        for images, labels in data_loader:
+            images = images.reshape(-1, 28*28).to(device)
+            outputs = model(images)
+            loss = criterion(outputs, labels)
+            total_loss += loss.item()
+            num_batches += 1
+    mean_loss = total_loss / num_batches
+    return mean_loss
+
+def calc_accuracy(data_loader,model):
 	with torch.no_grad():
 		correct = 0
 		total = 0
@@ -39,7 +64,7 @@ def calc_error(data_loader,model):
 			total += labels.size(0)
 			correct += (predicted == labels).sum().item()
 		
-		return 1 - (correct / total)
+		return correct / total
 
 def show_misclassified(data_loader,model):
 	mistakes = []
@@ -94,16 +119,16 @@ def train_model(seed=-1):
             if (i+1) % 100 == 0:
                 print('Epoch [{}/{}], Step [{}/{}], Loss: {:.4f}'
                     .format(epoch+1, num_epochs, i+1, total_step, loss.item()))
-        train_errors.append(calc_error(train_loader,model))
-        test_errors.append(calc_error(test_loader, model))
+        train_errors.append(calc_mean_cross_entropy(train_loader,model))
+        test_errors.append(calc_mean_cross_entropy(test_loader, model))
 
     return model, train_errors, test_errors
     
 def run():
-	model, test_errors, train_errors = train_model()
+	model, train_errors, test_errors = train_model()
 
 	print(f'Test error final network on the {len(test_dataset)} test images: {test_errors[-1]}')
-	print(f'Accuracy of: {100 * (1-test_errors[-1])} %')
+	print(f'Accuracy of: {100 * calc_accuracy(test_loader, model)} %')
 
 	plot_train_test_error(train_errors,test_errors)
 	show_misclassified(test_loader, model)
