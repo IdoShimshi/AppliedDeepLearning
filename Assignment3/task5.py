@@ -80,20 +80,20 @@ def plot_tsne(model, data_loader):
 
     # Use TSNE to reduce the dimensionality of the embeddings to 2D
     tsne = TSNE()
-    embeddings_fc1_2d = tsne.fit_transform(embeddings_fc1)
     embeddings_input_2d = tsne.fit_transform(embeddings_input)
+    embeddings_fc1_2d = tsne.fit_transform(embeddings_fc1)
+    plot(embeddings_input_2d, labels, 'Input Images')
+    plot(embeddings_fc1_2d, labels, 'Embeddings after first FC layer')
 
-    # Plot the 2D embeddings, colored by their corresponding labels
-    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(20, 10))
-    ax1.scatter(embeddings_input_2d[:, 0], embeddings_input_2d[:, 1], c=labels, cmap='tab10')
-    ax1.set_title('Input Images')
-    ax1.axis('off')
-    ax1.legend()
-    ax2.scatter(embeddings_fc1_2d[:, 0], embeddings_fc1_2d[:, 1], c=labels, cmap='tab10')
-    ax2.set_title('Embeddings after first FC layer')
-    ax2.axis('off')
-    ax2.legend()
-    plt.show()
+
+def plot(embeddings_2d, labels, title):
+    plt.figure(figsize=(20, 10))
+    for i in range(10):
+        plt.scatter(embeddings_2d[labels == i, 0], embeddings_2d[labels == i, 1], label=f"Class {i}")
+    plt.title(title)
+    plt.axis('off')
+    plt.legend()
+    plt.savefig('output/' + title + '.png')
 
 
 if __name__ == "__main__":
