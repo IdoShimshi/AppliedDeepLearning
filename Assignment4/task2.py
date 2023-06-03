@@ -8,9 +8,9 @@ import torch.optim as optim
 import torchvision
 import torchvision.transforms as transforms
 
-from CNN import CNNet
+from CNN_with_deconv import CNNetWithDeconv
 
-STATE_DICTIONARY_PATH = './CIFAR_MODEL_STATE_DICT.pth'
+STATE_DICTIONARY_PATH = './CIFAR_MODEL_STATE_DICT_TASK_2.pth'
 CLASSES = ('plane', 'car', 'bird', 'cat', 'deer', 'dog', 'frog', 'horse', 'ship', 'truck')
 BATCH_SIZE = 4
 
@@ -23,20 +23,16 @@ transform = transforms.Compose(
 def run():
     train_loader, test_loader = get_loaders()
 
-    print('Random examples from train set:')
-    dataiter = iter(train_loader)
-    images, labels = next(dataiter)
-    show_examples(images, labels)
-
     print('Get CNN model')
-    net = CNNet()
-    get_model(net, train_loader, train=False)
+    net = CNNetWithDeconv()
+    get_task_2_model(net, train_loader, train=False)
 
     print('Testing the model:')
     dataiter = iter(test_loader)
     images, labels = next(dataiter)
     show_examples(images, labels)
-    outputs = net(images)
+    outputs, x_reconstructed = net(images)
+    imshow(torchvision.utils.make_grid(x_reconstructed))
     _, predicted = torch.max(outputs, 1)
     print('Predicted: ', ' '.join(f'{CLASSES[predicted[j]]:5s}' for j in range(4)))
 
@@ -64,11 +60,12 @@ def imshow(images):
     plt.show()
 
 
-def get_model(net, train_loader, train=False):
+def get_task_2_model(net, train_loader, train=False):
     if not train and os.path.exists(STATE_DICTIONARY_PATH):
         net.load_state_dict(torch.load(STATE_DICTIONARY_PATH))
     else:
-        criterion = torch.nn.CrossEntropyLoss()
+        ce_criterion = torch.nn.CrossEntropyLoss()
+        mse_criterion = torch.nn.MSELoss()
         optimizer = optim.SGD(net.parameters(), lr=0.001, momentum=0.9)
 
         for epoch in range(2):  # loop over the dataset multiple times
@@ -82,8 +79,8 @@ def get_model(net, train_loader, train=False):
                 optimizer.zero_grad()
 
                 # forward + backward + optimize
-                outputs = net(inputs)
-                loss = criterion(outputs, labels)
+                outputs, x_reconstructed = net(inputs)
+                loss = ce_criterion(outputs, labels) + mse_criterion(inputs, x_reconstructed)
                 loss.backward()
                 optimizer.step()
 
@@ -108,7 +105,7 @@ def calc_accuracy(net, loader):
         for data in loader:
             images, labels = data
             # calculate outputs by running images through the network
-            outputs = net(images)
+            outputs, _ = net(images)
             # the class with the highest energy is what we choose as prediction
             _, predicted = torch.max(outputs.data, 1)
             total += labels.size(0)
