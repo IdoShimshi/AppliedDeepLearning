@@ -1,4 +1,6 @@
 import os
+import sys
+
 import torch
 import torchvision
 import torchvision.transforms as transforms
@@ -8,27 +10,31 @@ import torch.optim as optim
 
 from CNN import CNNet
 
-PATH = './cifar_net.pth'
+STATE_DICTIONARY_PATH = './CIFAR_MODEL_STATE_DICT.pth'
+CLASSES = ('plane', 'car', 'bird', 'cat', 'deer', 'dog', 'frog', 'horse', 'ship', 'truck')
+BATCH_SIZE = 4
 
-def imshow(img):
-    img = img / 2 + 0.5     # unnormalize
-    npimg = img.numpy()
+
+transform = transforms.Compose(
+        [transforms.ToTensor(),
+         transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))])
+
+
+def show_examples(images, labels):
+    print('Real labels: ' + ' '.join(f'{CLASSES[labels[j]]:5s}' for j in range(BATCH_SIZE)))
+    imshow(torchvision.utils.make_grid(images))
+
+
+def imshow(images):
+    images = images / 2 + 0.5  # un-normalize
+    npimg = images.numpy()
     plt.imshow(np.transpose(npimg, (1, 2, 0)))
     plt.show()
 
-def showExamples(loader):
-    # get some random training images
-    dataiter = iter(trainloader)
-    images, labels = next(dataiter)
-    # print labels
-    print('GroundTruth: ', ' '.join(f'{classes[labels[j]]:5s}' for j in range(batch_size)))
-    # show images
-    imshow(torchvision.utils.make_grid(images))
-    return images, labels
 
-def getModel(net, train=False):
-    if (not train and os.path.exists(PATH)):
-        net.load_state_dict(torch.load(PATH))
+def get_model(net, train_loader, train=False):
+    if not train and os.path.exists(STATE_DICTIONARY_PATH):
+        net.load_state_dict(torch.load(STATE_DICTIONARY_PATH))
     else:
         criterion = torch.nn.CrossEntropyLoss()
         optimizer = optim.SGD(net.parameters(), lr=0.001, momentum=0.9)
@@ -36,7 +42,7 @@ def getModel(net, train=False):
         for epoch in range(2):  # loop over the dataset multiple times
 
             running_loss = 0.0
-            for i, data in enumerate(trainloader, 0):
+            for i, data in enumerate(train_loader, 0):
                 # get the inputs; data is a list of [inputs, labels]
                 inputs, labels = data
 
@@ -51,19 +57,20 @@ def getModel(net, train=False):
 
                 # print statistics
                 running_loss += loss.item()
-                if i % 2000 == 1999:    # print every 2000 mini-batches
+                if i % 2000 == 1999:  # print every 2000 mini-batches
                     print(f'[{epoch + 1}, {i + 1:5d}] loss: {running_loss / 2000:.3f}')
                     running_loss = 0.0
-        torch.save(net.state_dict(), PATH)
+        torch.save(net.state_dict(), STATE_DICTIONARY_PATH)
+
 
 def calc_accuracy(net, loader):
     correct = 0
     total = 0
 
     # prepare to count predictions for each class
-    correct_pred = {classname: 0 for classname in classes}
-    total_pred = {classname: 0 for classname in classes}
-    
+    correct_pred = {classname: 0 for classname in CLASSES}
+    total_pred = {classname: 0 for classname in CLASSES}
+
     # since we're not training, we don't need to calculate the gradients for our outputs
     with torch.no_grad():
         for data in loader:
@@ -75,47 +82,46 @@ def calc_accuracy(net, loader):
             total += labels.size(0)
             correct += (predicted == labels).sum().item()
             # collect the correct predictions for each class
+
             for label, prediction in zip(labels, predicted):
                 if label == prediction:
-                    correct_pred[classes[label]] += 1
-                total_pred[classes[label]] += 1
-    return correct / total , correct_pred, total_pred
+                    correct_pred[CLASSES[label]] += 1
+                total_pred[CLASSES[label]] += 1
 
-transform = transforms.Compose(
-    [transforms.ToTensor(),
-     transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))])
-
-batch_size = 4
-
-trainset = torchvision.datasets.CIFAR10(root='./data', train=True,
-                                        download=True, transform=transform)
-trainloader = torch.utils.data.DataLoader(trainset, batch_size=batch_size,
-                                          shuffle=True, num_workers=0)
-
-testset = torchvision.datasets.CIFAR10(root='./data', train=False,
-                                       download=False, transform=transform)
-testloader = torch.utils.data.DataLoader(testset, batch_size=batch_size,
-                                         shuffle=False, num_workers=0)
-
-classes = ('plane', 'car', 'bird', 'cat', 'deer', 'dog', 'frog', 'horse', 'ship', 'truck')
+    print(f'Accuracy of the network on the 10000 test images: {(100 * correct / total):.1f} %')
+    # print accuracy for each class
+    for classname, correct_count in correct_pred.items():
+        accuracy = 100 * float(correct_count) / total_pred[classname]
+        print(f'Accuracy for class: {classname:5s} is {accuracy:.1f} %')
 
 
-showExamples(trainloader)
+def task1():
+    train_set = torchvision.datasets.CIFAR10(root='./data', train=True, download=True, transform=transform)
+    train_loader = torch.utils.data.DataLoader(train_set, batch_size=BATCH_SIZE, shuffle=True, num_workers=0)
 
-net = CNNet()
-getModel(net, train=True)
+    test_set = torchvision.datasets.CIFAR10(root='./data', train=False, download=False, transform=transform)
+    test_loader = torch.utils.data.DataLoader(test_set, batch_size=BATCH_SIZE, shuffle=False, num_workers=0)
 
-images, labels = showExamples(testloader)
-outputs = net(images)
-_, predicted = torch.max(outputs, 1)
+    print('Random examples from train set:')
+    dataiter = iter(train_loader)
+    images, labels = next(dataiter)
+    show_examples(images, labels)
 
-print('Predicted: ', ' '.join(f'{classes[predicted[j]]:5s}'
-                              for j in range(4)))
+    print('Get CNN model')
+    net = CNNet()
+    get_model(net, train_loader, train=False)
 
-accu, correct_pred, total_pred = calc_accuracy(net, testloader)
+    print('Testing the model:')
+    dataiter = iter(test_loader)
+    images, labels = next(dataiter)
+    show_examples(images, labels)
+    outputs = net(images)
+    _, predicted = torch.max(outputs, 1)
+    print('Predicted: ', ' '.join(f'{CLASSES[predicted[j]]:5s}' for j in range(4)))
 
-print(f'Accuracy of the network on the 10000 test images: {(100 * accu):.1f} %')
-# print accuracy for each class
-for classname, correct_count in correct_pred.items():
-    accuracy = 100 * float(correct_count) / total_pred[classname]
-    print(f'Accuracy for class: {classname:5s} is {accuracy:.1f} %')
+    calc_accuracy(net, test_loader)
+    sys.exit()
+
+
+if __name__ == "__main__":
+    task1()
