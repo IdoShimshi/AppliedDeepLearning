@@ -24,15 +24,15 @@ def run():
 
     print('Get CNN model')
     net = CNNetWithDeconv()
-    get_model(net, train_loader, train=True)
+    get_model(net, train_loader, train=False)
 
     print('Testing the model:')
     dataiter = iter(test_loader)
     images, labels = next(dataiter)
-    show_examples(images, labels)
+    show_examples(images, labels, 'Original')
     with torch.no_grad():
         outputs, x_reconstructed = net(images)
-    imshow(torchvision.utils.make_grid(x_reconstructed))
+    show_examples(x_reconstructed, labels, 'Reconstructed')
     _, predicted = torch.max(outputs, 1)
     print('Predicted: ', ' '.join(f'{CLASSES[predicted[j]]:5s}' for j in range(4)))
 
@@ -47,16 +47,17 @@ def get_loaders():
     return train_loader, test_loader
 
 
-def show_examples(images, labels):
-    print('Real labels: ' + ' '.join(f'{CLASSES[labels[j]]:5s}' for j in range(BATCH_SIZE)))
-    imshow(torchvision.utils.make_grid(images))
+def show_examples(images, labels, source):
+    title = source + (' images of ' + ', '.join(f'{CLASSES[labels[j]]:5s}' for j in range(BATCH_SIZE)))
+    imshow(torchvision.utils.make_grid(images), title)
 
 
-def imshow(images):
+def imshow(images, title):
     images = images / 2 + 0.5  # un-normalize
     npimg = images.numpy()
     plt.imshow(np.transpose(npimg, (1, 2, 0)))
-    plt.show()
+    plt.title(title)
+    plt.savefig(f'task2_output/{title}')
 
 
 def get_model(net, train_loader, train=False):
