@@ -28,3 +28,15 @@ class CNNetWithDeconv(nn.Module):
         x = F.relu(self.fc2(x))
         x = self.fc3(x)
         return x, reconstructed_x
+
+    def get_x_after_first_conv(self, x):
+        return self.pool(F.relu(self.conv1(x)))
+
+    def get_x_reconstructed_after_first_conv(self, x, pool_1_indices):
+        return self.conv1T(F.relu(self.unpool(x, pool_1_indices)))
+
+    def get_x_after_second_conv(self, x):
+        return self.pool(F.relu(self.conv2(x)))
+
+    def get_x_reconstructed_after_second_conv(self, x, pool_2_indices):
+        return self.conv2T(F.relu(self.unpool(x, pool_2_indices)))
