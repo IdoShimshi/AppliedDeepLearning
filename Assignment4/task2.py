@@ -1,5 +1,4 @@
 import os
-import sys
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -25,19 +24,19 @@ def run():
 
     print('Get CNN model')
     net = CNNetWithDeconv()
-    get_task_2_model(net, train_loader, train=False)
+    get_model(net, train_loader, train=True)
 
     print('Testing the model:')
     dataiter = iter(test_loader)
     images, labels = next(dataiter)
     show_examples(images, labels)
-    outputs, x_reconstructed = net(images)
+    with torch.no_grad():
+        outputs, x_reconstructed = net(images)
     imshow(torchvision.utils.make_grid(x_reconstructed))
     _, predicted = torch.max(outputs, 1)
     print('Predicted: ', ' '.join(f'{CLASSES[predicted[j]]:5s}' for j in range(4)))
 
     calc_accuracy(net, test_loader)
-    sys.exit()
 
 
 def get_loaders():
@@ -60,7 +59,7 @@ def imshow(images):
     plt.show()
 
 
-def get_task_2_model(net, train_loader, train=False):
+def get_model(net, train_loader, train=False):
     if not train and os.path.exists(STATE_DICTIONARY_PATH):
         net.load_state_dict(torch.load(STATE_DICTIONARY_PATH))
     else:
