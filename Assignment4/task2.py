@@ -43,7 +43,7 @@ def get_loaders():
     train_set = torchvision.datasets.CIFAR10(root='./data', train=True, download=True, transform=transform)
     train_loader = torch.utils.data.DataLoader(train_set, batch_size=BATCH_SIZE, shuffle=True, num_workers=0)
     test_set = torchvision.datasets.CIFAR10(root='./data', train=False, download=False, transform=transform)
-    test_loader = torch.utils.data.DataLoader(test_set, batch_size=BATCH_SIZE, shuffle=False, num_workers=0)
+    test_loader = torch.utils.data.DataLoader(test_set, batch_size=BATCH_SIZE, shuffle=True, num_workers=0) # shuffling to view different tests
     return train_loader, test_loader
 
 
@@ -57,7 +57,7 @@ def imshow(images, title):
     npimg = images.numpy()
     plt.imshow(np.transpose(npimg, (1, 2, 0)))
     plt.title(title)
-    plt.savefig(f'task2_output/{title}')
+    plt.savefig(f'./Assignment4/task2_output/{title}')
 
 
 def get_model(net, train_loader, train=False):
@@ -67,6 +67,7 @@ def get_model(net, train_loader, train=False):
         ce_criterion = torch.nn.CrossEntropyLoss()
         mse_criterion = torch.nn.MSELoss()
         optimizer = optim.SGD(net.parameters(), lr=0.001, momentum=0.9)
+        lamb = 2
 
         for epoch in range(2):  # loop over the dataset multiple times
 
@@ -80,7 +81,7 @@ def get_model(net, train_loader, train=False):
 
                 # forward + backward + optimize
                 outputs, x_reconstructed = net(inputs)
-                loss = ce_criterion(outputs, labels) + mse_criterion(inputs, x_reconstructed)
+                loss = ce_criterion(outputs, labels) + (lamb * mse_criterion(inputs, x_reconstructed))
                 loss.backward()
                 optimizer.step()
 

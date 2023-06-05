@@ -30,6 +30,12 @@ def run():
 
     train_image, train_image_label = next(iter(train_loader))
     test_image, test_image_label = next(iter(test_loader))
+    with torch.no_grad():
+        train_output, train_reconstructed = net(train_image)
+        test_output, test_reconstructed = net(test_image)
+    imshow(torchvision.utils.make_grid(train_reconstructed), "Train image reconstructed")
+    imshow(torchvision.utils.make_grid(test_reconstructed), "Test image reconstructed")
+        
     show_latent_features(net, train_image, f'Train image - {CLASSES[train_image_label]}')
     show_latent_features(net, test_image, f'Test image - {CLASSES[test_image_label]}')
 
@@ -47,7 +53,7 @@ def imshow(images, title):
     npimg = images.numpy()
     plt.imshow(np.transpose(npimg, (1, 2, 0)))
     plt.title(title)
-    plt.savefig(f'task3_output/{title}')
+    plt.savefig(f'./Assignment4/task3_output/{title}')
 
 
 def get_model(net):
@@ -70,7 +76,7 @@ def show_latent_features(net, image, image_title):
             imshow(x_reconstructed[0], title)
 
         x, pool_2_indices = net.get_x_after_second_conv(x)
-
+        random.seed(0) # want to see the same channels in both images 
         for i in sorted(random.sample(range(16), k=3)):
             x_with_one_channel_only = x.clone()
             for j in range(16):
